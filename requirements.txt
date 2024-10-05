@@ -1,0 +1,10 @@
+earthaccess
+h5py
+pandas
+numpy
+requests
+fastparquet
+matplotlib
+matplotlib-inline
+plotly
+dash
