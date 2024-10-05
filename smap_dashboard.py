@@ -64,7 +64,7 @@
 #     app.run_server(debug=True)
 import dash
 from dash import dcc, html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.express as px
 import pandas as pd
 
@@ -76,32 +76,37 @@ print(f"Total rows: {len(df)}")
 app = dash.Dash(__name__)
 
 app.layout = html.Div([
-    html.H1("California Soil Moisture Map"),
+    html.H1("Global Soil Moisture Map"),
     dcc.Graph(id='soil-moisture-map'),
     html.Div([
         html.Div([
             html.Label("Latitude Range:"),
-            dcc.RangeSlider(
-                id='lat-range-slider',
-                min=df['latitude'].min(),
-                max=df['latitude'].max(),
-                value=[df['latitude'].min(), df['latitude'].max()],
-                marks={i: f'{i:.1f}' for i in range(int(df['latitude'].min()), int(df['latitude'].max()) + 1, 2)},
-                step=0.1
-            ),
+            dcc.Input(id='lat-min-input', type='number', placeholder='Min Latitude', debounce=True, value=round(float(df['latitude'].min()), 3)),
+            dcc.Input(id='lat-max-input', type='number', placeholder='Max Latitude', debounce=True, value=round(float(df['latitude'].max()), 3))
+            # dcc.RangeSlider(
+            #     id='lat-range-slider',
+            #     min=round(df['latitude'].min()),
+            #     max=round(df['latitude'].max()),
+            #     value=[df['latitude'].min(), df['latitude'].max()],
+            #     marks={},
+            #     step=None
+            # ),
         ], style={'width': '48%', 'display': 'inline-block'}),
         html.Div([
             html.Label("Longitude Range:"),
-            dcc.RangeSlider(
-                id='lon-range-slider',
-                min=df['longitude'].min(),
-                max=df['longitude'].max(),
-                value=[df['longitude'].min(), df['longitude'].max()],
-                marks={i: f'{i:.1f}' for i in range(int(df['longitude'].min()), int(df['longitude'].max()) + 1, 2)},
-                step=0.1
-            ),
-        ], style={'width': '48%', 'float': 'right', 'display': 'inline-block'})
-    ]),
+            dcc.Input(id='lon-min-input', type='number', placeholder='Min Longitude', debounce=True, value=round(float(df['longitude'].min()), 3)),
+            dcc.Input(id='lon-max-input', type='number', placeholder='Max Longitude', debounce=True, value=round(float(df['longitude'].max()), 3))
+            # dcc.RangeSlider(
+            #     id='lon-range-slider',
+            #     min=round(df['longitude'].min(), 1),
+            #     max=round(df['longitude'].max(), 1),
+            #     value=[df['longitude'].min(), df['longitude'].max()],
+            #     marks={},
+            #     step=None
+            # ),
+        ], style={'width': '48%', 'float': 'right', 'display': 'inline-block'}),
+        html.Button('Update Map', id='submit-button', n_clicks=0, style={'margin-top': '20px'}),
+    ], style={'margin-bottom': '20px'}),
     dcc.Dropdown(
         id='moisture-type-dropdown',
         options=[
@@ -116,7 +121,7 @@ app.layout = html.Div([
         min=df['date_time'].min().timestamp(),
         max=df['date_time'].max().timestamp(),
         value=df['date_time'].min().timestamp(),
-        marks={int(date.timestamp()): date.strftime('%Y-%m-%d %H:%M')
+        marks={int(date.timestamp()): date.strftime('%m-%d')
                for date in pd.date_range(start=df['date_time'].min(),
                                          end=df['date_time'].max(),
                                          freq='D')},  # Daily marks for readability
@@ -128,26 +133,33 @@ app.layout = html.Div([
 @app.callback(
     [Output('soil-moisture-map', 'figure'),
      Output('datetime-display', 'children')],
-    [Input('datetime-slider', 'value'),
-     Input('moisture-type-dropdown', 'value'),
-     Input('lat-range-slider', 'value'),
-     Input('lon-range-slider', 'value')]
+    [Input('submit-button', 'n_clicks'),  # Button click triggers the update
+     Input('datetime-slider', 'value'),
+     Input('moisture-type-dropdown', 'value')],
+    [State('lat-min-input', 'value'),
+     State('lat-max-input', 'value'),
+     State('lon-min-input', 'value'),
+     State('lon-max-input', 'value')]
 )
-def update_map(selected_timestamp, moisture_type, lat_range, lon_range):
+def update_map(n_clicks, selected_timestamp, moisture_type, lat_min, lat_max, lon_min, lon_max):
+    # Convert selected timestamp to datetime
     selected_datetime = pd.to_datetime(selected_timestamp, unit='s')
+
+    # Filter DataFrame based on selected datetime and lat/lon ranges
     filtered_df = df[
         (df['date_time'] == selected_datetime) &
-        (df['latitude'].between(lat_range[0], lat_range[1])) &
-        (df['longitude'].between(lon_range[0], lon_range[1]))
+        (df['latitude'].between(lat_min, lat_max)) &
+        (df['longitude'].between(lon_min, lon_max))
     ]
 
+    # Create scatter mapbox figure
     fig = px.scatter_mapbox(filtered_df,
                             lat="latitude",
                             lon="longitude",
                             color=moisture_type,
                             zoom=5,
-                            center={"lat": (lat_range[0] + lat_range[1]) / 2,
-                                    "lon": (lon_range[0] + lon_range[1]) / 2})
+                            center={"lat": (lat_min + lat_max) / 2,
+                                    "lon": (lon_min + lon_max) / 2})
     fig.update_layout(mapbox_style="open-street-map")
 
     return fig, f"Selected DateTime: {selected_datetime}"
