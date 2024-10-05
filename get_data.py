@@ -23,4 +23,11 @@ def download_dataset(name, doi):
 
 if __name__ == "__main__":
 
-    download_dataset("moisture", "10.5067/EVKPQZ4AFC4D")
+    # download_dataset("moisture", "10.5067/EVKPQZ4AFC4D")
+
+    download_dataset("nvdi_and_evi", "10.5067/MODIS/MOD13A2.061")
+
+
+
+
+
