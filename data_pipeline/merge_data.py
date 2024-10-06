@@ -81,17 +81,55 @@ def process_sif_moisture_data(sif_file, moisture_file, n_days=3):
     return final_df
 
 
+def create_dummy_inference_data(moisture_file, n_days=3):
+    # Load moisture data
+    moisture_df = pd.read_parquet(moisture_file)
+    
+    # Convert 'date' column to datetime
+    moisture_df['date'] = pd.to_datetime(moisture_df['date_time']).dt.date
+    
+    # Get the most recent date
+    most_recent_date = moisture_df['date'].max()
+    
+    # Filter data for the most recent date
+    recent_moisture = moisture_df[moisture_df['date'] == most_recent_date]
+    
+    # Create the dummy inference dataframe
+    dummy_inference = pd.DataFrame({
+        'date': recent_moisture['date'],
+        'sif_lat': recent_moisture['latitude'],
+        'sif_lon': recent_moisture['longitude'],
+        'sif_value': 0  # Fill with zeros as per requirement
+    })
+    
+    # Add moisture data columns
+    for i in range(1, n_days + 1):
+        dummy_inference[f'water_prev{i}'] = recent_moisture['surface_soil_moisture']
+        dummy_inference[f'root_water_prev{i}'] = recent_moisture['root_zone_soil_moisture']
+    
+    # Convert date to string for consistency with the main dataframe
+    dummy_inference['date'] = dummy_inference['date'].astype(str)
+    
+    print(f"Created dummy inference data with {len(dummy_inference)} rows for date {most_recent_date}")
+    print(dummy_inference.info())
+    
+    return dummy_inference
+
+
+
+
 if __name__ == "__main__":
-    # Usage
+
     sif_file = 'oco3_sif.parquet'
     moisture_file = 'moisture.parquet'
+
     final_df = process_sif_moisture_data(sif_file, moisture_file, n_days=3)
-
     final_df['date'] = final_df['date'].astype(str)
-
-
     print(final_df.info())
-
-    # Save to parquet format
     final_df.to_parquet('sif_moisture.parquet')
-    breakpoint()
+
+    dummy_inference_df = create_dummy_inference_data(moisture_file, n_days=3)
+
+    # Save dummy inference data to parquet
+    dummy_inference_df.to_parquet('dummy_inference_data.parquet')
+    print("Dummy inference data saved to dummy_inference_data.parquet")

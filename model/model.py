@@ -91,20 +91,24 @@ if __name__ == "__main__":
     # perform inference on whole df
     df = load_formatted_sif_moisture_data()
 
-    # X = df[['sif_lat', 'sif_lon', 'water_prev1', 'root_water_prev1', 'water_prev2',
-    #         'root_water_prev2', 'water_prev3', 'root_water_prev3']]
 
+    # perform inference on the whole dataframe
+    print("Performing inference on the whole dataframe...")
     X = df[['water_prev1', 'root_water_prev1', 'water_prev2',
             'root_water_prev2', 'water_prev3', 'root_water_prev3']]
-
     y = df['sif_value']
-
     y_pred = model.predict(X)
-
     # substitute the predicted values in the dataframe
     df['sif_value'] = y_pred
-
     # save the dataframe with the predicted values
     df.to_parquet('sif_moisture_predicted.parquet')
 
+    # perform inference on dummy_inference_data.parquet
+    print("Performing inference on dummy_inference_data.parquet...")
+    dummy_inference = pd.read_parquet('dummy_inference_data.parquet')
+    X = dummy_inference[['water_prev1', 'root_water_prev1', 'water_prev2',
+                         'root_water_prev2', 'water_prev3', 'root_water_prev3']]
+    y_pred = model.predict(X)
+    dummy_inference['sif_value'] = y_pred
+    dummy_inference.to_parquet('sif_moisture_inpaint.parquet')
 
