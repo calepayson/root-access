@@ -6,8 +6,9 @@ os.environ["EARTHDATA_PASSWORD"] = "gugdo4-dapGuf-ximcev"
 
 
 us_coords = (-124.77, 24.52, -66.95, 49.38)
-start_date = "2023-09-01"
-end_date =  "2023-09-14"
+start_date = "2023-08-01"
+end_date =  "2023-08-03"
+# end_date =  "2023-09-01"
 
 
 def download_dataset(name, doi):

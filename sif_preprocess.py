@@ -54,7 +54,7 @@ def process_oco3_sif_file(file_path):
 
 if __name__ == "__main__":
     # Process all files
-    data_path = "./data/oco3_sif"
+    data_path = "./data/sif"
 
     all_files = sorted(glob(os.path.join(data_path, 'oco3_LtSIF_*.nc4')))
     print(f"Processing {len(all_files)} files...")

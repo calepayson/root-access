@@ -8,3 +8,6 @@ matplotlib
 matplotlib-inline
 plotly
 dash
+netCDF4
+scipy
+scikit-learn

@@ -91,4 +91,4 @@ def update_map(n_clicks, selected_timestamp, moisture_type, lat_min, lat_max, lo
     return fig, f"Selected DateTime: {selected_datetime}"
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, port="8051")
