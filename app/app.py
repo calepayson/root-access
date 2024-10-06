@@ -55,7 +55,7 @@ EXAMPLES = [
 DEBOUNCE = False
 
 # Load data
-df = pd.read_parquet('data/sif_moisture/sif_moisture.parquet')
+df = pd.read_parquet('data/sif_moisture/sif_moisture_predicted.parquet')
 df['date'] = pd.to_datetime(df['date'], errors='coerce')
 
 # Log number of rows
