@@ -24,7 +24,9 @@ def load_formatted_sif_moisture_data(file_path='sif_moisture.parquet'):
 
 
 def linear_fit(df):
-    features = ['sif_lat', 'sif_lon', 'water_prev1', 'root_water_prev1', 'water_prev2',
+    # features = ['sif_lat', 'sif_lon', 'water_prev1', 'root_water_prev1', 'water_prev2',
+    #             'root_water_prev2', 'water_prev3', 'root_water_prev3']
+    features = ['water_prev1', 'root_water_prev1', 'water_prev2',
                 'root_water_prev2', 'water_prev3', 'root_water_prev3']
 
     X = df[features]
@@ -89,7 +91,10 @@ if __name__ == "__main__":
     # perform inference on whole df
     df = load_formatted_sif_moisture_data()
 
-    X = df[['sif_lat', 'sif_lon', 'water_prev1', 'root_water_prev1', 'water_prev2',
+    # X = df[['sif_lat', 'sif_lon', 'water_prev1', 'root_water_prev1', 'water_prev2',
+    #         'root_water_prev2', 'water_prev3', 'root_water_prev3']]
+
+    X = df[['water_prev1', 'root_water_prev1', 'water_prev2',
             'root_water_prev2', 'water_prev3', 'root_water_prev3']]
 
     y = df['sif_value']

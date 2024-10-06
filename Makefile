@@ -1,4 +1,4 @@
-.PHONY: app, model
+.PHONY: app model
 
 venv:
 	python -m venv venv
