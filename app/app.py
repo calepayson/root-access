@@ -28,7 +28,8 @@ EXAMPLES = [
         'lat_min': 30.0,
         'lat_max': 40.0,
         'lon_min': -100.0,
-        'lon_max': -90.0
+        'lon_max': -90.0,
+        'zoom': 7
     },
     {
         'name': 'Example 2', 
@@ -36,15 +37,17 @@ EXAMPLES = [
         'lat_min': 40.0,
         'lat_max': 50.0,
         'lon_min': -80.0,
-        'lon_max': -70.0
+        'lon_max': -70.0,
+        'zoom': 7
     },
     {
-        'name': 'Example 3', 
+        'name': 'Reset', 
         'id': 'example-button-3',
         'lat_min': -90.0,
         'lat_max': 90.0,
         'lon_min': -180.0,
-        'lon_max': -70.0
+        'lon_max': 180.0,
+        'zoom': 3
     },
 ]
 
@@ -230,35 +233,39 @@ def update_map(
 
 # Callback to track changes in the map's zoom level
 @app.callback(
-    Output('map-zoom-store', 'data'),
-    [Input('data-map', 'relayoutData')]
+    Output('map-zoom-store', 'data', allow_duplicate=True),
+    [Input('data-map', 'relayoutData')],
+    prevent_initial_call=True
 )
 def update_zoom(relayout_data):
     if relayout_data and 'mapbox.zoom' in relayout_data:
         return {'zoom': relayout_data['mapbox.zoom']}
     return no_update
 
-# A callback button to handl examples
+# A callback button to handle examples
 @app.callback(
     [Output('lat-min-input', 'value'),
      Output('lat-max-input', 'value'),
      Output('lon-min-input', 'value'),
-     Output('lon-max-input', 'value')],
+     Output('lon-max-input', 'value'),
+     Output('map-zoom-store', 'data', allow_duplicate=True)],
     [Input('example-button-1', 'n_clicks'),
      Input('example-button-2', 'n_clicks'),
      Input('example-button-3', 'n_clicks')],
+    prevent_initial_call=True
 )
 def update_coordinates(
     btn1_clicks: int, btn2_clicks: int, btn3_clicks: int
-) -> Tuple[float, float, float, float]:
+) -> Tuple[float, float, float, float, dict]:
     # Default coordinates
     lat_min, lat_max = -90.0, 90.0
     lon_min, lon_max = -180.0, 180.0
+    zoom = 3
 
     # Use callback_context to find out which button was clicked
     ctx = callback_context
     if not ctx.triggered:
-        return lat_min, lat_max, lon_min, lon_max  # No button was clicked
+        return lat_min, lat_max, lon_min, lon_max, {'zoom': zoom}  # No button was clicked
 
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
@@ -267,9 +274,10 @@ def update_coordinates(
         if example['id'] == button_id:
             lat_min, lat_max = example['lat_min'], example['lat_max']
             lon_min, lon_max = example['lon_min'], example['lon_max']
+            zoom = example['zoom']
             break  # Exit the loop once the matching example is found
 
-    return lat_min, lat_max, lon_min, lon_max
+    return lat_min, lat_max, lon_min, lon_max, {'zoom': zoom}
 
 
 # Run the server
