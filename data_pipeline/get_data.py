@@ -18,8 +18,13 @@ def download_dataset(name, doi):
         temporal=(start_date, end_date),
     )
 
-    files = earthaccess.download(results, f"./data/{name}")
+    path = f"./data/{name}"
+    if os.path.exists(path):
+        files = earthaccess.download(results, path)
 
+    else:
+        os.makedirs(path)
+        files = earthaccess.download(results, path)
 
 
 if __name__ == "__main__":

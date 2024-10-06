@@ -53,17 +53,21 @@ def process_oco3_sif_file(file_path):
         return df
 
 if __name__ == "__main__":
-    # Process all files
-    data_path = "./data/sif"
 
-    all_files = sorted(glob(os.path.join(data_path, 'oco3_LtSIF_*.nc4')))
-    print(f"Processing {len(all_files)} files...")
-    all_data = [process_oco3_sif_file(file) for file in all_files]
+    if not os.path.exists("oco3_sif.parquet"):
 
-    # Concatenate all data
-    final_df = pd.concat(all_data, ignore_index=True)
+        # Process all files
+        data_path = "./data/sif"
 
-    # Save to parquet format
-    final_df.to_parquet('oco3_sif.parquet')
-    
-    print(f"Processed data saved. Total rows: {len(final_df)}")
+        all_files = sorted(glob(os.path.join(data_path, 'oco3_LtSIF_*.nc4')))
+        print(f"Processing {len(all_files)} files...")
+        all_data = [process_oco3_sif_file(file) for file in all_files]
+
+        # Concatenate all data
+        final_df = pd.concat(all_data, ignore_index=True)
+
+        # Save to parquet format
+        final_df.to_parquet('oco3_sif.parquet')
+        
+        print(f"Processed data saved. Total rows: {len(final_df)}")
+

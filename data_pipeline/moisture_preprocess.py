@@ -52,16 +52,18 @@ def process_smap_l4_file(file_path):
 
 if __name__ == "__main__":
     # Process all files
-    data_path = "./data/moisture"
 
-    all_files = sorted(glob(os.path.join(data_path, 'SMAP_L4_SM_gph_*.h5')))
-    print(f"Processing {len(all_files)} granules...")
-    all_data = [process_smap_l4_file(file) for file in all_files]
+    if not os.path.exists("moisture.parquet"):
+        data_path = "./data/moisture"
 
-    # Concatenate all data
-    final_df = pd.concat(all_data, ignore_index=True)
+        all_files = sorted(glob(os.path.join(data_path, 'SMAP_L4_SM_gph_*.h5')))
+        print(f"Processing {len(all_files)} granules...")
+        all_data = [process_smap_l4_file(file) for file in all_files]
 
-    # Save to parquet format
-    final_df.to_parquet('moisture.parquet')
-    
-    print(f"Processed data saved. Total rows: {len(final_df)}")
+        # Concatenate all data
+        final_df = pd.concat(all_data, ignore_index=True)
+
+        # Save to parquet format
+        final_df.to_parquet('moisture.parquet')
+        
+        print(f"Processed data saved. Total rows: {len(final_df)}")
