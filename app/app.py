@@ -20,6 +20,7 @@ INPAINTED_DATA = 'data/sif_moisture/sif_moisture_inpaint.parquet'
 PRODUCTION_DATA = ''
 
 CURRENT_DATA = TEST_DATA
+# CURRENT_DATA = INPAINTED_DATA
 
 # Info message
 INFO_MESSAGE = [
