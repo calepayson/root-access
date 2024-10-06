@@ -4,7 +4,7 @@
 
 from typing import Tuple
 import dash
-from dash import callback_context, dcc, html, Input, Output
+from dash import callback_context, dcc, html, Input, Output, no_update
 import plotly.express as px
 import plotly.graph_objs as go
 import pandas as pd
@@ -176,7 +176,8 @@ app.layout = html.Div([
 
         # Map container
         html.Div([
-            dcc.Graph(id='data-map', className='data-map')
+            dcc.Graph(id='data-map', className='data-map'),
+            dcc.Store(id='map-zoom-store', data={'zoom': 3})
         ], className='map-container'),
     ], className='content-container'),
 
@@ -194,11 +195,12 @@ app.layout = html.Div([
      Input('lat-max-input', 'value'),
      Input('lon-min-input', 'value'),
      Input('lon-max-input', 'value'),
-     Input('date-time-slider', 'value')],
+     Input('date-time-slider', 'value'),
+     Input('map-zoom-store', 'data')],
 )
 def update_map(
     selected_data_type: str, lat_min: float, lat_max: float, lon_min: float,
-    lon_max: float, selected_timestamp: str
+    lon_max: float, selected_timestamp: str, zoom_state: dict
 ) -> go.Figure:
 
     # Convert selected_timestamp to datetime
@@ -211,17 +213,30 @@ def update_map(
         (df['date'] == selected_datetime)
     ]
 
+    # Extract zoom from zoom_state
+    current_zoom = zoom_state.get('zoom', 3)
+
     # Build the figure
     figure = px.scatter_mapbox(
         filtered_df,
         lat="sif_lat",
         lon="sif_lon",
         color=selected_data_type,
-        zoom=3,
+        zoom=current_zoom,
         opacity=0.3,
     )
     figure.update_layout(mapbox_style="open-street-map")
     return figure
+
+# Callback to track changes in the map's zoom level
+@app.callback(
+    Output('map-zoom-store', 'data'),
+    [Input('data-map', 'relayoutData')]
+)
+def update_zoom(relayout_data):
+    if relayout_data and 'mapbox.zoom' in relayout_data:
+        return {'zoom': relayout_data['mapbox.zoom']}
+    return no_update
 
 # A callback button to handl examples
 @app.callback(
