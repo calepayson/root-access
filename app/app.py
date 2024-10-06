@@ -2,8 +2,9 @@
 # IMPORTS #
 ###########
 
+from typing import Tuple
 import dash
-from dash import dcc, html, Input, Output
+from dash import callback_context, dcc, html, Input, Output
 import plotly.express as px
 import plotly.graph_objs as go
 import pandas as pd
@@ -21,9 +22,30 @@ INFO_MESSAGE = [
 
 # Examples
 EXAMPLES = [
-    {'name': 'Example 1', 'id': 'example-button-1'},
-    {'name': 'Example 2', 'id': 'example-button-2'},
-    {'name': 'Example 2', 'id': 'example-button-3'},
+    {
+        'name': 'Example 1', 
+        'id': 'example-button-1',
+        'lat_min': 30.0,
+        'lat_max': 40.0,
+        'lon_min': -100.0,
+        'lon_max': -90.0
+    },
+    {
+        'name': 'Example 2', 
+        'id': 'example-button-2',
+        'lat_min': 40.0,
+        'lat_max': 50.0,
+        'lon_min': -80.0,
+        'lon_max': -70.0
+    },
+    {
+        'name': 'Example 3', 
+        'id': 'example-button-3',
+        'lat_min': -90.0,
+        'lat_max': 90.0,
+        'lon_min': -180.0,
+        'lon_max': -70.0
+    },
 ]
 
 # Turn on debounce to improve performance
@@ -39,14 +61,20 @@ print(f"Total rows: {len(df)}")
 # Initialize the app object
 app = dash.Dash(__name__)
 
+# Build the info specific for the presentation
 def presentation_info() -> html.Div:
     result = html.Div([
         *[html.P(line) for line in INFO_MESSAGE],
         html.Div([], className='presentation-info-separator'),
-        *[html.Button(example['name'], id=example['id']) for example in EXAMPLES]
+        *[html.Button(
+            example['name'], 
+            id=example['id'],
+            n_clicks=0,
+        ) for example in EXAMPLES]
     ], className='presentation-info')
     return result
 
+# Build the latitude controls
 def latitude_controls(lat_min: float=-90.0, lat_max: float=90.0) -> html.Div:
     result = html.Div([
         html.Label("Latitude Range:"),
@@ -71,6 +99,7 @@ def latitude_controls(lat_min: float=-90.0, lat_max: float=90.0) -> html.Div:
     ], className='input-group')
     return result
 
+# Build the longitude controls
 def longitude_controls(long_min: float=-180.0, long_max: float=180.0) -> html.Div:
     result = html.Div([
         html.Label("Longitude Range:"),
@@ -95,6 +124,7 @@ def longitude_controls(long_min: float=-180.0, long_max: float=180.0) -> html.Di
     ], className='input-group')
     return result
 
+# Build the data-type dropdown
 def data_type_dropdown() -> html.Div:
     result = html.Div([
         html.Label("Data Type:"),
@@ -112,6 +142,7 @@ def data_type_dropdown() -> html.Div:
     ], className='input-group')
     return result
 
+# Build the date-slider
 def date_time_slider() -> dcc.Slider:
     first_date = df['date'].min()
     last_date = df['date'].max()
@@ -155,6 +186,7 @@ app.layout = html.Div([
     ], className='slider-container'),
 ], className='main-container')
 
+# The main callback function to update the map upon user input
 @app.callback(
     Output('data-map', 'figure'),
     [Input('data-type-dropdown', 'value'),
@@ -190,6 +222,40 @@ def update_map(
     )
     figure.update_layout(mapbox_style="open-street-map")
     return figure
+
+# A callback button to handl examples
+@app.callback(
+    [Output('lat-min-input', 'value'),
+     Output('lat-max-input', 'value'),
+     Output('lon-min-input', 'value'),
+     Output('lon-max-input', 'value')],
+    [Input('example-button-1', 'n_clicks'),
+     Input('example-button-2', 'n_clicks'),
+     Input('example-button-3', 'n_clicks')],
+)
+def update_coordinates(
+    btn1_clicks: int, btn2_clicks: int, btn3_clicks: int
+) -> Tuple[float, float, float, float]:
+    # Default coordinates
+    lat_min, lat_max = -90.0, 90.0
+    lon_min, lon_max = -180.0, 180.0
+
+    # Use callback_context to find out which button was clicked
+    ctx = callback_context
+    if not ctx.triggered:
+        return lat_min, lat_max, lon_min, lon_max  # No button was clicked
+
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    # Map the button ID to the corresponding example
+    for example in EXAMPLES:
+        if example['id'] == button_id:
+            lat_min, lat_max = example['lat_min'], example['lat_max']
+            lon_min, lon_max = example['lon_min'], example['lon_max']
+            break  # Exit the loop once the matching example is found
+
+    return lat_min, lat_max, lon_min, lon_max
+
 
 # Run the server
 if __name__ == "__main__":
