@@ -16,6 +16,7 @@ import pandas as pd
 # DATA
 TEST_DATA = 'data/sif_moisture/sif_moisture.parquet'
 PREDICTED_DATA = 'data/sif_moisture/sif_moisture_predicted.parquet'
+INPAINTED_DATA = 'data/sif_moisture/sif_moisture_inpaint.parquet'
 PRODUCTION_DATA = ''
 
 CURRENT_DATA = TEST_DATA
@@ -62,9 +63,7 @@ EXAMPLES = [
 DEBOUNCE = False
 
 # Load data
-# df = pd.read_parquet('data/sif_moisture/sif_moisture.parquet')
-df = pd.read_parquet('data/sif_moisture/sif_moisture_predicted.parquet')
-# df = pd.read_parquet('data/sif_moisture/sif_moisture_inpaint.parquet')
+df = pd.read_parquet(CURRENT_DATA)
 df['date'] = pd.to_datetime(df['date'], errors='coerce')
 
 # Log number of rows
